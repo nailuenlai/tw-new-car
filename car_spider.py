@@ -8,16 +8,16 @@ class NewCarSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for link in LinkExtractor(restrict_css='.make-list').extract_links(response):
-            yield {
-                'url': link.url,
-            }
+        for car_maker in LinkExtractor(restrict_css='.make-list').extract_links(response):
+            yield scrapy.Request(car_maker.url, callback=self.parse_maker)
 
-        #for maker in response.css('.make-list').xpath('./div/div/div/div/div/a[@href]'):
-        #    yield {
-        #        'url': maker.xpath('@href').extract_first(),
-        #    }
-        #next_page = response.css('li.next a::attr("href")').extract_first()
-        #if next_page is not None:
-        #    next_page = response.urljoin(next_page)
-        #    yield scrapy.Request(next_page, callback=self.parse)
+    def parse_maker(self, response):
+        for car_model in LinkExtractor(restrict_css='.model-list').extract_links(response):
+            yield scrapy.Request(car_model.url, callback=self.parse_model)
+
+    def parse_model(self, response):
+        for model_trim in LinkExtractor(restrict_css='.model').extract_links(response):
+            yield scrapy.Request(model_trim.url, callback=self.parse_trim)
+
+    def parse_trim(self, response):
+        pass
