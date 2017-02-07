@@ -20,4 +20,12 @@ class NewCarSpider(scrapy.Spider):
             yield scrapy.Request(model_trim.url, callback=self.parse_trim)
 
     def parse_trim(self, response):
-        pass
+        #response.xpath("//div[@id='trim-info-spec']").xpath('.//table/tbody/tr').xpath('.//td/text()').extract()
+        spec_kv, spec_list = response.xpath("//div[@id='trim-info-spec']/div/div")
+        ret = {
+            'model': response.css('.title').xpath('.//text()').extract_first(),
+            'price': response.css('.price-num').xpath('.//strong/text()').extract_first(),
+            'spec': dict([x.xpath('.//td/text()').extract() for x in spec_kv.xpath('.//table/tbody/tr')]),
+            'equip': spec_list.xpath('.//table/tbody/tr').xpath('.//td/text()').extract(),
+        }
+        return ret
